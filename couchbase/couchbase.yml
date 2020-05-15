@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Pod
+# labels attached to this Pod
+metadata:
+  name: couchbase
+  labels:
+    app: couchbase
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: type
+            operator: In
+            values:
+            - ondemand
+  containers:
+  - name: couchbase
+    image: couchbase:community
+    ports:
+    - containerPort: 8091
+      name: web
+    - containerPort: 8092
+      name: view
+    - containerPort: 8093
+      name: nq
+    - containerPort: 8094
+      name: other1
+    - containerPort: 11210
+      name: cache
+    - containerPort: 4369
+      name: other2
+    volumeMounts:
+      - name: couch-volume
+        mountPath: /opt/couchbase/var
+  tolerations:
+  - key: "key"
+    operator: "Equal"
+    value: "value"
+    effect: "NoSchedule"
+  initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /opt/couchbase/var"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: couch-volume
+          mountPath: /opt/couchbase/var
+  volumes:
+    - name: couch-volume
+      persistentVolumeClaim:
+        claimName: couch-data

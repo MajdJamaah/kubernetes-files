@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: couchbase-pv
+  labels:
+    app: couchbase-pv
+spec:
+  storageClassName: aws-gp2
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  awsElasticBlockStore:
+    volumeID: vol-XXXX
+    fsType: ext4

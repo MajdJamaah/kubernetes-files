@@ -1,0 +1,78 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: type
+            operator: In
+            values:
+            - ondemand
+  containers:
+    - name: elasticsearch
+      image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+      resources:
+            limits:
+              cpu: 1000m
+            requests:
+              cpu: 100m
+      ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        - containerPort: 9300
+          name: inter-node
+          protocol: TCP
+      volumeMounts:
+        - name: es-volume
+          mountPath: /usr/share/elasticsearch/data
+      env:
+        - name: cluster.name
+          value: XXXXX
+        - name: discovery.type
+          value: single-node
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch
+              key: password
+        - name: ES_JAVA_OPTS
+          value: "-Xms512m -Xmx512m"
+        - name: bootstrap.memory_lock
+          value: "true"
+      volumeMounts:
+        - name: es-volume
+          mountPath: /usr/share/elasticsearch/data
+        - name: elasticsearch-config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+  tolerations:
+  - key: "key"
+    operator: "Equal"
+    value: "value"
+    effect: "NoSchedule"
+  initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: es-volume
+          mountPath: /usr/share/elasticsearch/data
+  volumes:
+    - name: es-volume
+      persistentVolumeClaim:
+        claimName: es-data
+    - name: elasticsearch-config
+      configMap:
+        name: elasticsearch-config
+        items:
+          - key: elasticsearch.yml
+            path: elasticsearch.yml

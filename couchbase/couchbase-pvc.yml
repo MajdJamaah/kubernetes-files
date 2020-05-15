@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: couch-data
+  labels:
+    app: couchbase-pvc
+spec:
+  storageClassName: aws-gp2
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  selector:
+    matchLabels:
+      app: couchbase-pv

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: couchbase-nq
+  labels:
+    service: couchbase-nq
+spec:
+  type: NodePort
+  selector:
+    app: couchbase
+  ports:
+  - port: 8093
+    targetPort: 8093
